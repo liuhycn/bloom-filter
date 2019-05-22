@@ -7,45 +7,109 @@ using namespace std;
 class bloomFilter
 {
 private:
-    char bitArray[LENGTH];
-    int m = LENGTH * 8;   //The number of bit Array for BloomFilter
-    int k = 3;            //The number of Hash Function
+    u_int8 *bitArray;
+    int m;   		  //The number of bit Array for BloomFilter
+    int k;            //The number of Hash Function
 public:
-    void insert(pktData pkt);
-    bool query(pktData pkt);
-    bloomFilter();
-    ~bloomfilter();
+    void insert(int *hashIndex);
+    bool query(int *hashIndex);
+    bloomFilter(){}
+    bloomFilter(int m,int k)
+    {
+		this->m = m;
+		this->k = k;
+		int temp = m / 8;
+		this->bitArray = new u_int8[temp];
+    }
+};
+
+
+void bloomFilter::insert(int *hashIndex)
+{
+	for (int i = 0; i < this->k; i++)
+	{
+		int index1 = hashIndex[i] / 8;
+		int index2 = hashIndex[i] % 8;
+		u_int8 x = 0x80 >> index2;
+		this->bitArray[index1] = this->bitArray[index1] | x;
+	}
 }
 
-class hashFuction
+bool bloomFilter::query(int *hashIndex)
+{
+	bool ans = true;
+	for (int i = 0; i < this->k; i++)
+	{
+		int index1 = hashIndex[i] / 8;
+		int index2 = hashIndex[i] % 8;
+		u_int8 x = 0x80 >> index2;
+		u_int8 flag = this->bitArray[index1] & x;
+		if(flag == 0)
+		{
+			ans = false;
+			break;
+		}
+	}
+	return ans;
+}
+
+class generater
 {
 public:
-	hashFuction();
-	~hashFuction();
-	int hash_1(fiveTuple_t pktTuple);
-	int hash_2(fiveTuple_t pktTuple);
-	int hash_3(fiveTuple_t pktTuple);
+	void generateKey(fiveTuple_t pktTuple, u_char * str);
+};
+
+void generater::generateKey(fiveTuple_t pktTuple, u_int8 * str)
+{
+	str[0] = pktTuple.srcIP[0];
+	str[1] = pktTuple.srcIP[1];
+	str[2] = pktTuple.srcIP[2];
+	str[3] = pktTuple.srcIP[3];
+
+	str[4] = pktTuple.dstIP[0];
+	str[5] = pktTuple.dstIP[1];
+	str[6] = pktTuple.dstIP[2];
+	str[7] = pktTuple.dstIP[3];
+
+	str[8] = pktTuple.protocol;
+
+	str[9] = pktTuple.srcPort[0];
+	str[10] = pktTuple.srcPort[1];
+
+	str[11] = pktTuple.dstPort[0];
+	str[12] = pktTuple.dstPort[1];
 }
 
-int hashFuction::hash_1(fiveTuple_t pktTuple)
+class hashMap
 {
-	int hashVal = 0;
+private:
+	int m;
+	int seed;
+public:
+	hashMap(){}
+	hashMap(int m,int seed)
+	{
+		this->m = m;
+		this->seed = seed;
+		//printf("%d\n", this->seed);
+	}
+	int hash(fiveTuple_t pktTuple);
+};
 
-	return hashval;
-}
 
-
-int hashFuction::hash_2(fiveTuple_t pktTuple)
+int hashMap::hash(fiveTuple_t pktTuple)
 {
-	int hashVal = 0;
+	u_int8 value[13] = {0};
+	generater g;
+	g.generateKey(pktTuple, value);
+	int ans = 0;
 
-	return hashval;
-}
 
+	for (int i = 0;i<13;i++)
+	{
+		ans += this->seed * ans + value[i];
+	}
 
-int hashFuction::hash_3(fiveTuple_t pktTuple)
-{
-	int hashVal = 0;
-
-	return hashval;
+	ans = (this->m - 1) & ans;
+	return ans;
 }

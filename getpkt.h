@@ -15,7 +15,7 @@ void bin1(u_int8 A)
 {
 	for (int i = 1<<31; i > 0; i >>= 1)
     {
-        (i & A)?printf("1"): printf("0");	
+        (i & A)?printf("1"): printf("0");
     }
     printf("\n");
 }
@@ -84,6 +84,16 @@ struct fiveTuple_t
 	u_int8 protocol;       	//协议类型
 	u_int8 srcPort[2];     	// 源端口号16bit
 	u_int8 dstPort[2];    	// 目的端口号16bit
+	void printinfo()
+	{
+		printf("srcIP : %d.%d.%d.%d \n", srcIP[0], srcIP[1], srcIP[2], srcIP[3]);
+		printf("dstIP : %d.%d.%d.%d \n", dstIP[0], dstIP[1], dstIP[2], dstIP[3]);
+		printf("protocol type : %d\n", protocol);
+		int srcP = srcPort[0] * 256 + srcPort[1];
+		int dstP = dstPort[0] * 256 + dstPort[1];
+		printf("srcPort : %d\n",srcP);
+		printf("dstPort : %d\n",dstP);
+	}
 };
 
 
@@ -166,35 +176,10 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 			}
 			
 			// print
-			printf("pkt no : %d\n", pktCounter);
-
-			for (int i = 0; i<4;i++)
-			{
-				printf("%02x ", fiveTupleFuf[pktCounter].srcIP[i]);
-			}
-			printf("\n");
-			for (int i = 0; i<4;i++)
-			{
-				printf("%02x ", fiveTupleFuf[pktCounter].dstIP[i]);
-			}
-			printf("\n");
-			printf("%02x\n", fiveTupleFuf[pktCounter].protocol);
-			for (int i = 0; i<2;i++)
-			{
-				printf("%02x ", fiveTupleFuf[pktCounter].srcPort[i]);
-			}
-			printf("\n");
-			for (int i = 0; i<2;i++)
-			{
-				printf("%02x ", fiveTupleFuf[pktCounter].dstPort[i]);
-			}
-			
-			printf("\n");
 
 
 		}
 
-		printf("\n");
 
 		if(pktCounter == n)
 		{
