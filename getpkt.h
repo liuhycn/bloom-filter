@@ -6,29 +6,10 @@
 
 using namespace std;
 
-
+typedef unsigned long long u_int64;
 typedef u_int32_t u_int32;
 typedef u_int16_t u_int16;
 typedef u_int8_t u_int8;
-
-void bin1(u_int8 A)
-{
-	for (int i = 1<<31; i > 0; i >>= 1)
-    {
-        (i & A)?printf("1"): printf("0");
-    }
-    printf("\n");
-}
-
-void bin2(u_int8 A)
-{
-    if (A > 0)
-    {
-        bin2(A/2);
-    }
-	
-    (A & 1)?printf("1"): printf("0");
-}
 
 struct etherHeader_t
 { //Pcap捕获的数据帧头
@@ -84,6 +65,7 @@ struct fiveTuple_t
 	u_int8 protocol;       	//协议类型
 	u_int8 srcPort[2];     	// 源端口号16bit
 	u_int8 dstPort[2];    	// 目的端口号16bit
+	u_char str[13];
 	void printinfo()
 	{
 		printf("srcIP : %d.%d.%d.%d \n", srcIP[0], srcIP[1], srcIP[2], srcIP[3]);
@@ -94,10 +76,28 @@ struct fiveTuple_t
 		printf("srcPort : %d\n",srcP);
 		printf("dstPort : %d\n",dstP);
 	}
+	void tochar()
+	{
+		str[0]  = (u_char)(srcIP[0]);
+		str[1]  = (u_char)(srcIP[1]);
+		str[2]  = (u_char)(srcIP[2]);
+		str[3]  = (u_char)(srcIP[3]);
+
+		str[4]  = (u_char)(dstIP[0]);
+		str[5]  = (u_char)(dstIP[1]);
+		str[6]  = (u_char)(dstIP[2]);
+		str[7]  = (u_char)(dstIP[3]);
+
+		str[8]  = (u_char)(protocol);
+
+		str[9]  = (u_char)(srcPort[0]);
+		str[10] = (u_char)(srcPort[1]);
+
+		str[11] = (u_char)(dstPort[0]);
+		str[12] = (u_char)(dstPort[1]);
+
+	}
 };
-
-
-int pktCounter = 0;
 
 
 char errbuf[PCAP_ERRBUF_SIZE];
@@ -124,14 +124,10 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 	struct tcpHeader_t *tcpHeader;
 	struct udpHeader_t *udpHeader;
 
-	
-
 	int size_ethernet = sizeof(struct etherHeader_t);
 	int size_ip = sizeof(struct ipHeader_t);
 	int size_tcp = sizeof(struct tcpHeader_t);
 	int size_udp = sizeof(struct udpHeader_t);
-
-
 
 	while (1)
 	{
@@ -143,45 +139,42 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 		}
 		else
 		{
-			pktCounter++;
+			this->pktCounter++;
 
-			etherHeader = (struct etherHeader_t*)(pktStr);
+			//etherHeader = (struct etherHeader_t*)(pktStr);
 
+			ipHeader = (struct ipHeader_t*)(pktStr);
 
-
-			ipHeader = (struct ipHeader_t*)(pktStr + size_ethernet);
-
-			
-			memcpy(fiveTupleFuf[pktCounter].srcIP,ipHeader->srcIP,4);
-			memcpy(fiveTupleFuf[pktCounter].dstIP,ipHeader->dstIP,4);
-			fiveTupleFuf[pktCounter].protocol = ipHeader->protocol;
+			memcpy(fiveTupleFuf[this->pktCounter].srcIP,ipHeader->srcIP,4);
+			memcpy(fiveTupleFuf[this->pktCounter].dstIP,ipHeader->dstIP,4);
+			fiveTupleFuf[this->pktCounter].protocol = ipHeader->protocol;
 
 
 			if (ipHeader->protocol == 0x06)
 			{
 
 				//printf("this is a tcp packet !\n");
-				tcpHeader = (struct tcpHeader_t*)(pktStr + size_ethernet + size_ip);
+				tcpHeader = (struct tcpHeader_t*)(pktStr + size_ip);
 
-				memcpy(fiveTupleFuf[pktCounter].srcPort,tcpHeader->srcPort,2);
-				memcpy(fiveTupleFuf[pktCounter].dstPort,tcpHeader->dstPort,2);
+				memcpy(fiveTupleFuf[this->pktCounter].srcPort,tcpHeader->srcPort,2);
+				memcpy(fiveTupleFuf[this->pktCounter].dstPort,tcpHeader->dstPort,2);
 
 			}
 			else if (ipHeader->protocol == 0x11)
 			{
 				
-				udpHeader = (struct udpHeader_t*)(pktStr + size_ethernet + size_ip);
-				memcpy(fiveTupleFuf[pktCounter].srcPort,udpHeader->srcPort,2);
-				memcpy(fiveTupleFuf[pktCounter].dstPort,udpHeader->dstPort,2);
+				udpHeader = (struct udpHeader_t*)(pktStr + size_ip);
+				memcpy(fiveTupleFuf[this->pktCounter].srcPort,udpHeader->srcPort,2);
+				memcpy(fiveTupleFuf[this->pktCounter].dstPort,udpHeader->dstPort,2);
 			}
 			
-			// print
-
+			
+			fiveTupleFuf[this->pktCounter].tochar();
 
 		}
 
 
-		if(pktCounter == n)
+		if(this->pktCounter == n)
 		{
 			break;
 		}
