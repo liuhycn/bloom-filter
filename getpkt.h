@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <set>
 
 using namespace std;
 
@@ -93,6 +94,11 @@ struct fiveTuple_t
 		int dstP = dstPort[0] * 256 + dstPort[1];
 		printf("srcPort : %d\n",srcP);
 		printf("dstPort : %d\n",dstP);
+	}
+	
+	bool operator < (const fiveTuple_t &b)const
+	{
+		return false;
 	}
 };
 
