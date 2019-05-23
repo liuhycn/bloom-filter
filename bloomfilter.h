@@ -1,7 +1,5 @@
 #include "getpkt.h"
 
-
-
 using namespace std;
 
 class bloomFilter

@@ -106,13 +106,13 @@ char errbuf[PCAP_ERRBUF_SIZE];
 class extracter
 {
 private:
-	int pktCounter = 0;
+	u_int64 pktCounter = 0;
 public:
-	void extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n);
+	void extract(char * fname, struct fiveTuple_t *fiveTupleFuf,u_int64 n);
 };
 
 
-void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
+void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,u_int64 n)
 {
 
 	pcap_t * pcap;
@@ -141,9 +141,9 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 		{
 			this->pktCounter++;
 
-			//etherHeader = (struct etherHeader_t*)(pktStr);
+			etherHeader = (struct etherHeader_t*)(pktStr);
 
-			ipHeader = (struct ipHeader_t*)(pktStr);
+			ipHeader = (struct ipHeader_t*)(pktStr + size_ethernet);
 
 			memcpy(fiveTupleFuf[this->pktCounter].srcIP,ipHeader->srcIP,4);
 			memcpy(fiveTupleFuf[this->pktCounter].dstIP,ipHeader->dstIP,4);
@@ -154,7 +154,7 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 			{
 
 				//printf("this is a tcp packet !\n");
-				tcpHeader = (struct tcpHeader_t*)(pktStr + size_ip);
+				tcpHeader = (struct tcpHeader_t*)(pktStr + size_ip + size_ethernet);
 
 				memcpy(fiveTupleFuf[this->pktCounter].srcPort,tcpHeader->srcPort,2);
 				memcpy(fiveTupleFuf[this->pktCounter].dstPort,tcpHeader->dstPort,2);
@@ -163,7 +163,7 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,int n)
 			else if (ipHeader->protocol == 0x11)
 			{
 				
-				udpHeader = (struct udpHeader_t*)(pktStr + size_ip);
+				udpHeader = (struct udpHeader_t*)(pktStr + size_ip + size_ethernet);
 				memcpy(fiveTupleFuf[this->pktCounter].srcPort,udpHeader->srcPort,2);
 				memcpy(fiveTupleFuf[this->pktCounter].dstPort,udpHeader->dstPort,2);
 			}
