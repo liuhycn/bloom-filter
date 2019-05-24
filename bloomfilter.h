@@ -16,7 +16,7 @@ public:
     {
 		this->m = m;
 		this->k = k;
-		u_int64 temp = m / 8;
+		u_int64 temp = m / 8 + 1;
 		this->bitArray = new u_int8[temp];
     }
 };

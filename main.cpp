@@ -1,4 +1,6 @@
 #include "bloomfilter.h"
+#include <time.h>
+
 
 u_int64 n;
 u_int64 k;
@@ -95,8 +97,8 @@ int calc_next_prime(int num) {
 }
 
 
-struct fiveTuple_t pktTuplebuf[150001];						//store 5-tuple of pkt in memory
-u_int64 hashIndex[11];										//store k hash values
+struct fiveTuple_t pktTuplebuf[38000001];						//store 5-tuple of pkt in memory
+u_int64 hashIndex[21];										//store k hash values
 //struct awareHash hashfuctions[11];							//store k hash functions
 
 
@@ -105,6 +107,8 @@ bool check(int index)
 	
 	for (int i = 1;i<=index-1;i++)
 	{
+
+
 		int flag = 0;
 		for (int j = 0;j<13;j++)
 		{
@@ -128,92 +132,102 @@ int main()
 {
 	srand(time(NULL));
 
-	u_int64 flowcnt = 0;
-
-	printf("plz input the size of this bloom filter(n) : \n");
-	scanf("%u",&n);
-	printf("plz input the number of hash fuctions(k) : \n");
-	scanf("%u",&k);
-	printf("plz input the length of the bits array(m) : \n");
-	scanf("%u",&m);
-
-	//printf("%u\n", n);
-	//printf("%u\n", k);
-	//printf("%u\n", m);
-
-
-	u_int64 *hash     = new u_int64[k];
-	u_int64 *scale    = new u_int64[k];
-	u_int64 *hardener = new u_int64[k];
-
-	u_int64 seed = 3752863345;
-
-	for (int i=0; i<k; i++) 
-	{
-        hash[i] = GenHashSeed(seed++);
-    }
-    for (int i=0; i<k; i++) 
-    {
-        scale[i] = GenHashSeed(seed++);
-    }
-    for (int i=0; i<k; i++) 
-    {
-        hardener[i] = GenHashSeed(seed++);
-    }
 	
 
-	//gennerater a bloom filer with m bits array
-	bloomFilter bf(m,k);
 
-	char * fname = "test.pcap";
+	
+	n = 200000;
+
+
+	char * fname = "test2.pcap";
 	extracter a;
+
+
 	a.extract(fname,pktTuplebuf,n);
-
-	for (int i = 1; i<=n; i++)
+	for (int div = 1;div <=10;div++)
 	{
-
-		printf("info of pkt %d\n", i);
-		pktTuplebuf[i].printinfo();
-
-
-		for (int j = 0;j<k;j++)
+		m = n*div;
+		for (k = 1;k<=15;k++)
 		{
-			printf("the no : %d hash value of pkt %d is %d \n", j,i,(AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j])));
-			hashIndex[j] = AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j]);
-		}
 
-		bool setFlag = check(i);
-		{
-			if (setFlag == 1)
+
+			u_int64 flowcnt = 0;
+
+
+			u_int64 *hash     = new u_int64[k];
+			u_int64 *scale    = new u_int64[k];
+			u_int64 *hardener = new u_int64[k];
+
+			u_int64 seed = 3752863345;
+			u_int64 errorCnt = 0;
+
+			for (int i=0; i<k; i++) 
 			{
-				printf("turely exist !\n");
-			}
-			else 
-			{
-				printf("no !\n");
-			}
-		}
-
-
-		bool flag = bf.query(hashIndex);
-		if (flag == 0)
-		{
-			flowcnt++;
-			printf("there is not exist pkt %d \n", i);
-			bf.insert(hashIndex);
-		}
-		else
-		{
-			printf("pkt %d is already exist\n", i);
-		}
-
-		if (setFlag == 0 && flag == 1)
-		{
+		        hash[i] = GenHashSeed(seed++);
+		    }
+		    for (int i=0; i<k; i++) 
+		    {
+		        scale[i] = GenHashSeed(seed++);
+		    }
+		    for (int i=0; i<k; i++) 
+		    {
+		        hardener[i] = GenHashSeed(seed++);
+		    }
 			
+
+			//gennerater a bloom filer with m bits array
+			bloomFilter bf(m,k);
+
+			for (int i = 1; i<=n; i++)
+			{
+
+				//printf("info of pkt %d\n", i);
+				//pktTuplebuf[i].printinfo();
+
+				for (int j = 0;j<k;j++)
+				{
+					//printf("the no : %d hash value of pkt %d is %d \n", j,i,(AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j])));
+					hashIndex[j] = AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j]);
+
+				}
+				
+				bool flag = bf.query(hashIndex);
+
+				if (flag == 0)
+				{
+					
+					//printf("there is not exist pkt %d \n", i);
+
+					//clock_t start,finish;
+		   			//double totaltime;
+		   			//start=clock();
+
+					bf.insert(hashIndex);
+
+					//finish=clock();
+		  			//totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
+		   			//std::cout<<"\n此程序的运行时间为"<<totaltime*1e3<<"ms！"<<std::endl;
+		   			//return 0;
+
+
+				}
+				else
+				{
+					//printf("pkt %d is already exist\n", i);
+					errorCnt++;
+				}
+			}
+
+			//printf("there are %d flows in this pcap file\n", flowcnt);
+			//printf("error is : %u\n", errorCnt);
+			printf("err times is : %u\n", errorCnt);
+			double errrte = (errorCnt*1.0) / n;
+			printf("the error rate of %d hash functions is : %.4lf%% \n", k,errrte*100.0);
+
+			//printf("err rate of %d is : %.4lf%% \n", err);
+			printf("\n");
 		}
+
 	}
-
-	printf("there are %d flows in this pcap file\n", flowcnt);
-
 	return 0;
 }
