@@ -1,1 +1,0 @@
-cmd_/home/liuhy/bloom-filter/file.ko := ld -r -m elf_x86_64 -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/liuhy/bloom-filter/file.ko /home/liuhy/bloom-filter/file.o /home/liuhy/bloom-filter/file.mod.o ;  true
