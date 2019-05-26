@@ -7,10 +7,6 @@
 using namespace std;
 
 
-
-
-
-
 typedef unsigned long long u_int64;
 typedef u_int32_t u_int32;
 typedef u_int16_t u_int16;
@@ -226,6 +222,8 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,u_int64 n
 				fiveTupleFuf[this->pktCounter].tochar();
 
 				//fiveTupleFuf[1].printinfo();
+				//printf("1\n");
+				//printf("\n");
 			}
 			else
 			{
@@ -244,9 +242,9 @@ void extracter::extract(char * fname, struct fiveTuple_t *fiveTupleFuf,u_int64 n
 
 
 					fiveTupleFuf[this->pktCounter].tochar();
-					fiveTupleFuf[this->pktCounter].printinfo();
-					printf("%d\n", this->pktCounter);
-					printf("\n");
+					//fiveTupleFuf[this->pktCounter].printinfo();
+					//printf("%d\n", this->pktCounter);
+					//printf("\n");
 				}
 
 			}

@@ -132,26 +132,20 @@ int main()
 {
 	srand(time(NULL));
 
-	
-
-
-	
 	n = 200000;
-
 
 	char * fname = "test2.pcap";
 	extracter a;
+	a.extract(fname,pktTuplebuf,2*n);
 
-
-	a.extract(fname,pktTuplebuf,n);
-	for (int div = 1;div <=10;div++)
+	for (int div = 1;div <=32;div++)
 	{
 		m = n*div;
-		for (k = 1;k<=15;k++)
+		for (k = 1;k<=div;k++)
 		{
 
 
-			u_int64 flowcnt = 0;
+			//u_int64 flowcnt = 0;
 
 
 			u_int64 *hash     = new u_int64[k];
@@ -175,34 +169,46 @@ int main()
 		    }
 			
 
-			//gennerater a bloom filer with m bits array
+			//generate a bloom filer with m bits array
 			bloomFilter bf(m,k);
+			//printf("%u\n", bf.getFill());
+			//printf("\n");
+			//printf("\n");
+			//printf("\n");
 
 			for (int i = 1; i<=n; i++)
 			{
 
 				//printf("info of pkt %d\n", i);
 				//pktTuplebuf[i].printinfo();
-
+				memset(hashIndex,0,sizeof(hashIndex));
 				for (int j = 0;j<k;j++)
 				{
 					//printf("the no : %d hash value of pkt %d is %d \n", j,i,(AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j])));
 					hashIndex[j] = AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j]);
 
 				}
+				bf.insert(hashIndex);
 				
-				bool flag = bf.query(hashIndex);
+				//bool flag = bf.query(hashIndex);
 
-				if (flag == 0)
-				{
+				//if (flag == 0)
+				//{
 					
 					//printf("there is not exist pkt %d \n", i);
 
 					//clock_t start,finish;
 		   			//double totaltime;
 		   			//start=clock();
+		   			//printf("insert pkt %u\n", i);
+		   			//printf("%u hash index are :",k);
+		   			//for (int iii = 0;iii<k;iii++)
+		   			//{
+		   			//	printf("%u ", hashIndex[iii]);
+		   			//}
+		   			//printf("\n");
 
-					bf.insert(hashIndex);
+					
 
 					//finish=clock();
 		  			//totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
@@ -210,18 +216,46 @@ int main()
 		   			//return 0;
 
 
-				}
-				else
+				//}
+				//else
+				//{
+					//printf("%u hash index are :",k);
+		   			//for (int iii = 0;iii<k;iii++)
+		   			//{
+		   			//	printf("%u ", hashIndex[iii]);
+		   			//}
+		   			//printf("\n");
+
+					//printf("pkt %u is already exist\n", i);
+					//printf("\n");
+					//errorCnt++;
+				//}
+			}
+
+			for (int i = n+1;i<=2*n;i++)
+			{
+				memset(hashIndex,0,sizeof(hashIndex));
+				for (int j = 0;j<k;j++)
 				{
-					//printf("pkt %d is already exist\n", i);
+					//printf("the no : %d hash value of pkt %d is %d \n", j,i,(AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j])));
+					hashIndex[j] = AwareHash(pktTuplebuf[i].str, 13, hash[j], scale[j], hardener[j]);
+				}
+				bool flag = bf.query(hashIndex);
+				if (flag == 1)
+				{
 					errorCnt++;
 				}
 			}
 
 			//printf("there are %d flows in this pcap file\n", flowcnt);
 			//printf("error is : %u\n", errorCnt);
+			printf("case m/n = %d, hash functions = %d\n", div,k);
+			printf("\n");
+			double fillRate = (bf.getFill() * 1.0) / m;
+
+			printf("the fill rate of the filter is : %.4lf%% \n", fillRate*100.0);
 			printf("err times is : %u\n", errorCnt);
-			double errrte = (errorCnt*1.0) / n;
+			double errrte = (errorCnt*1.0) / (n);
 			printf("the error rate of %d hash functions is : %.4lf%% \n", k,errrte*100.0);
 
 			//printf("err rate of %d is : %.4lf%% \n", err);
